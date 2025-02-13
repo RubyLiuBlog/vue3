@@ -370,6 +370,7 @@ function baseCreateRenderer(
 
   // Note: functions inside this closure should use `const xxx = () => {}`
   // style in order to prevent being inlined by minifiers.
+  // 首次渲染时n1为空，n2为当前要渲染的值
   const patch: PatchFn = (
     n1,
     n2,
@@ -386,12 +387,24 @@ function baseCreateRenderer(
     }
 
     // patching & not same type, unmount old tree
+    /**
+     * 当 Vue 在更新过程中遇到两个类型不同的 VNode（n1 和 n2）时，它会执行以下操作：
+     * 1.判断类型：首先检查是否存在旧节点n1, 并且新旧节点是否为不同类型。
+     * 2.查找锚点：如果类型确实不同，它会找到旧节点 n1 之后的下一个 DOM 节点（anchor），这将作为后续插入新节点 n2 的参考位置。
+     * 3.卸载旧树：然后，它会完全卸载旧节点 n1 及其所有子节点，包括从 DOM 中移除元素、触发组件的卸载钩子、清理资源等。
+     * 4.设置旧节点为null : 将旧节点设置为null.
+     */
     if (n1 && !isSameVNodeType(n1, n2)) {
       anchor = getNextHostNode(n1)
       unmount(n1, parentComponent, parentSuspense, true)
       n1 = null
     }
 
+    /**
+     * 如果新 VNode (n2) 的 patchFlag 被设置为 BAIL (值为 -2)，则会禁用该节点的优化模式并将 dynamicChildren 属性设置为 null。
+     * BAIL 标志表示由于某些原因（例如，使用了 v-if、v-for 和 v-slot 的组合），
+     * Vue 无法对该分支进行优化，因此需要回退到完整的 diff 算法，并且不再追踪动态子节点。
+     */
     if (n2.patchFlag === PatchFlags.BAIL) {
       optimized = false
       n2.dynamicChildren = null
@@ -1271,7 +1284,27 @@ function baseCreateRenderer(
       instance.vnode = n2
     }
   }
-
+  /**
+   * 1.初始渲染：
+      - 调用组件的渲染函数 (render function) 或编译模板 (template) 生成虚拟 DOM (subTree)。
+      - 调用 patch 函数将虚拟 DOM 渲染成真实的 DOM，并挂载到页面上。
+      - 触发 mounted 等生命周期钩子。
+      - 将组件标记为已挂载 (instance.isMounted = true)。
+    2. 建立响应式更新：
+      - 创建一个响应式 effect (使用 effect 函数)。
+      - 将组件的更新函数 (componentUpdateFn) 作为 effect 的回调函数.
+        1.这个更新函数会重新运行组件的 render function, 生成新的虚拟DOM (newSubtree).
+        2.并再次调用patch函数，对比新旧虚拟 DOM 树 (oldSubtree vs newSubTree)，找出差异并更新真实的 DOM。
+      - 将这个 effect 赋值给 instance.update，后续可以通过调用 instance.update() 来强制组件重新渲染。
+      - 当组件内响应式数据发生变化时，会自动触发这个 effect，从而执行组件的更新函数，实现响应式更新。
+   * @param instance 
+   * @param initialVNode 
+   * @param container 
+   * @param anchor 
+   * @param parentSuspense 
+   * @param namespace 
+   * @param optimized 
+   */
   const setupRenderEffect: SetupRenderEffectFn = (
     instance,
     initialVNode,

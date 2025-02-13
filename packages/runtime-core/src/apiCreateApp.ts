@@ -254,6 +254,7 @@ export function createAppAPI<HostElement>(
 ): CreateAppFunction<HostElement> {
   return function createApp(rootComponent, rootProps = null) {
     if (!isFunction(rootComponent)) {
+      // extend = Object.assing
       rootComponent = extend({}, rootComponent)
     }
 
@@ -261,13 +262,13 @@ export function createAppAPI<HostElement>(
       __DEV__ && warn(`root props passed to app.mount() must be an object.`)
       rootProps = null
     }
-
+    // 1.创建上下文
     const context = createAppContext()
     const installedPlugins = new WeakSet()
     const pluginCleanupFns: Array<() => any> = []
 
     let isMounted = false
-
+    //2.创建实例
     const app: App = (context.app = {
       _uid: uid++,
       _component: rootComponent as ConcreteComponent,
@@ -289,7 +290,7 @@ export function createAppAPI<HostElement>(
           )
         }
       },
-
+      // app.use() 安装插件
       use(plugin: Plugin, ...options: any[]) {
         if (installedPlugins.has(plugin)) {
           __DEV__ && warn(`Plugin has already been applied to target app.`)
@@ -307,7 +308,7 @@ export function createAppAPI<HostElement>(
         }
         return app
       },
-
+      // 混合
       mixin(mixin: ComponentOptions) {
         if (__FEATURE_OPTIONS_API__) {
           if (!context.mixins.includes(mixin)) {
@@ -323,7 +324,7 @@ export function createAppAPI<HostElement>(
         }
         return app
       },
-
+      // 注册组件
       component(name: string, component?: Component): any {
         if (__DEV__) {
           validateComponentName(name, context.config)
@@ -337,7 +338,7 @@ export function createAppAPI<HostElement>(
         context.components[name] = component
         return app
       },
-
+      // 注册指令
       directive(name: string, directive?: Directive) {
         if (__DEV__) {
           validateDirectiveName(name)
@@ -352,7 +353,7 @@ export function createAppAPI<HostElement>(
         context.directives[name] = directive
         return app
       },
-
+      // 组件挂载
       mount(
         rootContainer: HostElement,
         isHydrate?: boolean,

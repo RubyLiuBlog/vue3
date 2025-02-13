@@ -71,6 +71,7 @@ let renderer: Renderer<Element | ShadowRoot> | HydrationRenderer
 
 let enabledHydration = false
 
+// 单例模式 如果有则返回，没有则调用createRender
 function ensureRenderer() {
   return (
     renderer ||
@@ -96,7 +97,8 @@ export const hydrate = ((...args) => {
 }) as RootHydrateFunction
 
 export const createApp = ((...args) => {
-  const app = ensureRenderer().createApp(...args)
+  const render = ensureRenderer()
+  const app = render.createApp(...args)
 
   if (__DEV__) {
     injectNativeTagCheck(app)
@@ -105,15 +107,21 @@ export const createApp = ((...args) => {
 
   const { mount } = app
   app.mount = (containerOrSelector: Element | ShadowRoot | string): any => {
+    /**
+     * normalizeContainer(container)
+     * container: Element | ShadowRoot | string,
+     */
     const container = normalizeContainer(containerOrSelector)
     if (!container) return
-
+    /**
+     * 当一个 Vue 组件没有以常规方式（函数、render 函数或 template 属性）提供模板时，
+     * 它会尝试直接从挂载容器的 innerHTML 中获取模板。
+     * 这是一种“不安全”的操作，因为它可能引入安全风险。
+     * 同时, 还会检查vue2.x 的兼容性并发出相应的警告。
+     */
+    // _component: {setup: f}
     const component = app._component
     if (!isFunction(component) && !component.render && !component.template) {
-      // __UNSAFE__
-      // Reason: potential execution of JS expressions in in-DOM template.
-      // The user must make sure the in-DOM template is trusted. If it's
-      // rendered by the server, the template should not contain any user data.
       component.template = container.innerHTML
       // 2.x compat check
       if (__COMPAT__ && __DEV__ && container.nodeType === 1) {
@@ -129,11 +137,11 @@ export const createApp = ((...args) => {
         }
       }
     }
-
     // clear content before mounting
     if (container.nodeType === 1) {
       container.textContent = ''
     }
+    // 执行挂载
     const proxy = mount(container, false, resolveRootNamespace(container))
     if (container instanceof Element) {
       container.removeAttribute('v-cloak')

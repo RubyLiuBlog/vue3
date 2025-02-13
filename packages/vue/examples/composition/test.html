@@ -1,0 +1,18 @@
+<script src="../../dist/vue.global.js"></script>
+
+<div id="app">
+    <h1>{{ state.title }}</h1>
+</div>
+
+<script>
+    const { createApp, reactive } = Vue
+    createApp({
+        setup() {
+            const state = reactive({ title: 'hello world' })
+            return {
+                state,
+            }
+        }
+
+    }).mount('#app')
+</script>

@@ -462,33 +462,33 @@ function createBaseVNode(
   needFullChildrenNormalization = false,
 ): VNode {
   const vnode = {
-    __v_isVNode: true,
-    __v_skip: true,
-    type,
-    props,
-    key: props && normalizeKey(props),
-    ref: props && normalizeRef(props),
-    scopeId: currentScopeId,
-    slotScopeIds: null,
-    children,
-    component: null,
-    suspense: null,
-    ssContent: null,
-    ssFallback: null,
-    dirs: null,
-    transition: null,
-    el: null,
-    anchor: null,
-    target: null,
-    targetStart: null,
-    targetAnchor: null,
-    staticCount: 0,
-    shapeFlag,
-    patchFlag,
-    dynamicProps,
-    dynamicChildren: null,
-    appContext: null,
-    ctx: currentRenderingInstance,
+    __v_isVNode: true, // 标识该对象是一个 VNode (Virtual Node)
+    __v_skip: true, // 标识该 VNode 可以跳过响应式处理 (用于优化)
+    type, // VNode 的类型，可以是字符串 (表示 HTML 元素)、组件对象、Fragment 等
+    props, // 传递给组件或元素的属性 (props)
+    key: props && normalizeKey(props), // 用于列表渲染的 key，帮助 Vue 识别节点，进行高效的更新
+    ref: props && normalizeRef(props), // 用于获取 DOM 元素或组件实例的引用
+    scopeId: currentScopeId, // 用于 CSS 作用域 ID (scoped CSS)
+    slotScopeIds: null, // 插槽作用域 ID 列表
+    children, // 子节点，可以是字符串、数组 (包含更多 VNode) 或 null
+    component: null, // 如果该 VNode 对应一个组件，这里会存储组件的实例
+    suspense: null, // 如果该 VNode 在 Suspense 组件内，这里会存储 Suspense 组件的实例
+    ssContent: null, // Suspense content
+    ssFallback: null, // Suspense fallback
+    dirs: null, // 自定义指令
+    transition: null, // 过渡效果相关信息
+    el: null, // 对应的真实 DOM 元素 (在 VNode 渲染到 DOM 后会被赋值)
+    anchor: null, // 锚点，用于插入或移动 VNode
+    target: null, // 目标容器, 用于 portals
+    targetStart: null, // target的开始位置
+    targetAnchor: null, // portal 插入的锚点
+    staticCount: 0, // 静态节点的计数 (用于静态提升优化)
+    shapeFlag, // 形状标记，用于快速判断 VNode 的类型 (元素、组件、文本等)
+    patchFlag, // 补丁标记，用于优化更新过程 (指示哪些属性发生了变化)
+    dynamicProps, // 动态属性的名称数组 (用于优化更新)
+    dynamicChildren: null, // 动态子节点数组 (用于块级更新 Blocks)
+    appContext: null, // 应用上下文
+    ctx: currentRenderingInstance, // 当前渲染实例
   } as VNode
 
   if (needFullChildrenNormalization) {
