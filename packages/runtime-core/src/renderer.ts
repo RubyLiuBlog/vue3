@@ -1318,21 +1318,28 @@ function baseCreateRenderer(
       if (!instance.isMounted) {
         let vnodeHook: VNodeHook | null | undefined
         const { el, props } = initialVNode
+        // bm is beforeMount hook；
+        // m is mounted hook；
+        // parent is parent component instance；
+        // root is root component instance；
+        // type is component type
         const { bm, m, parent, root, type } = instance
         const isAsyncWrapperVNode = isAsyncWrapper(initialVNode)
 
+        // 控制副作用和调度任务是否允许递归执行
         toggleRecurse(instance, false)
-        // beforeMount hook
+        // 1. beforeMount hook
         if (bm) {
           invokeArrayFns(bm)
         }
-        // onVnodeBeforeMount
+        // onVnodeBeforeMount：在挂载之前调用
         if (
           !isAsyncWrapperVNode &&
           (vnodeHook = props && props.onVnodeBeforeMount)
         ) {
           invokeVNodeHook(vnodeHook, parent, initialVNode)
         }
+        // onVnodeBeforeMount hook for compat 兼容
         if (
           __COMPAT__ &&
           isCompatEnabled(DeprecationTypes.INSTANCE_EVENT_HOOKS, instance)
@@ -1340,7 +1347,6 @@ function baseCreateRenderer(
           instance.emit('hook:beforeMount')
         }
         toggleRecurse(instance, true)
-
         if (el && hydrateNode) {
           // vnode has adopted host node - perform hydration instead of mount.
           const hydrateSubTree = () => {
@@ -1387,6 +1393,7 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `render`)
           }
+          // 2. renderComponentRoot
           const subTree = (instance.subTree = renderComponentRoot(instance))
           if (__DEV__) {
             endMeasure(instance, `render`)
@@ -1394,6 +1401,7 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `patch`)
           }
+          // 3. patch
           patch(
             null,
             subTree,

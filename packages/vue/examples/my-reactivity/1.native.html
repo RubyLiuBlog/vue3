@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>原生js 示例</title>
+  </head>
+  <body>
+    <script>
+      let price = 5
+      let quantity = 2
+      let total = 0
+      // the code we want to run
+      const effect = () => {
+        total = price * quantity
+      }
+      // ------以上为基本属性---------以下为实现---------------
+      const dep = new Set()
+      // the code we want to save
+      const track = () => {
+        dep.add(effect)
+      }
+
+      // run all the code when i`ve saved
+      const trigger = () => {
+        dep.forEach(effect => effect())
+      }
+      // ---------------run()---------------
+      track()
+      effect()
+    </script>
+  </body>
+</html>

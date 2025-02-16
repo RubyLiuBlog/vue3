@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>4.proxy+reflect=reactivity</title>
+  </head>
+  <body>
+    <script>
+      const targetMap = new WeakMap()
+      // the code we want to save
+      const track = (target, key) => {
+        let depsMap = targetMap.get(target)
+        if (!depsMap) {
+          targetMap.set(target, (depsMap = new Map()))
+        }
+        let dep = depsMap.get(key)
+        if (!dep) {
+          depsMap.set(key, (dep = new Set()))
+        }
+        dep.add(effect)
+      }
+
+      // run all the code when i`ve saved
+      const trigger = (target, key) => {
+        const depsMap = targetMap.get(target)
+        if (!depsMap) {
+          return
+        }
+        const dep = depsMap.get(key)
+        if (dep) {
+          dep.forEach(effect => effect())
+        }
+      }
+      // ------以上为基本属性---------以下为实现--Proxy And Reflect-------------
+      function reactive(target) {
+        const handler = {
+          get(target, key, receiver) {
+            const result = Reflect.get(target, key, receiver)
+            track(target, key)
+            return result
+          },
+          set(target, key, value, receiver) {
+            const oldValue = target[key]
+            const result = Reflect.set(target, key, value, receiver)
+            if (oldValue != Reflect.get(target, key, receiver)) {
+              trigger(target, key)
+            }
+            return result
+          },
+        }
+        return new Proxy(target, handler)
+      }
+
+      // ---------------run()---------------
+      const product = reactive({
+        price: 5,
+        quantity: 2,
+      })
+      let total = 0
+      // the code we want to run
+      const effect = () => {
+        total = product.price * product.quantity
+      }
+      effect()
+    </script>
+  </body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2. map and set 示例</title>
+  </head>
+  <body>
+    <script>
+      const product = {
+        price: 5,
+        quantity: 2,
+      }
+      let total = 0
+      // the code we want to run
+      const effect = () => {
+        total = product.price * product.quantity
+      }
+      // ------以上为基本属性---------以下为实现---------------
+      const depsMap = new Map()
+      // the code we want to save
+      const track = key => {
+        const dep = depsMap.get(key)
+        if (!dep) {
+          depsMap.set(key, new Set([effect]))
+          return
+        }
+        dep.add(effect)
+      }
+
+      // run all the code when i`ve saved
+      const trigger = key => {
+        const dep = depsMap.get(key)
+        if (dep) {
+          dep.forEach(effect => effect())
+        }
+      }
+      // ---------------run()---------------
+      track('quantity')
+      effect()
+    </script>
+  </body>
+</html>

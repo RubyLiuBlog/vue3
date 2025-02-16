@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>6.computed</title>
+  </head>
+  <body>
+    <script type="module">
+      import { reactive, ref, computed } from './index.js'
+      // ---------------run()---------------
+      const product = reactive({
+        price: 5,
+        quantity: 2,
+      })
+
+      const salePrice = computed(() => {
+        return product.price * 0.9
+      })
+
+      const total = computed(() => {
+        return salePrice.value * product.quantity
+      })
+
+      console.log(total.value, salePrice.value)
+      product.quantity = 3
+      console.log(total.value, salePrice.value)
+      product.price = 10
+      console.log(total.value, salePrice.value)
+    </script>
+  </body>
+</html>
