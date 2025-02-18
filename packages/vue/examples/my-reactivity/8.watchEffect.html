@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>8.watchEffect</title>
+  </head>
+  <body>
+    <script type="module">
+      import {
+        reactive,
+        ref,
+        computed,
+        watch,
+        watchEffect,
+        isRef,
+      } from './index.js'
+      // ---------------run()---------------
+      const salePrice = ref(0)
+      watchEffect(() => {
+        console.log(`触发了watchEffect salePrice: ${salePrice.value}`)
+      })
+
+      salePrice.value = 1
+    </script>
+  </body>
+</html>

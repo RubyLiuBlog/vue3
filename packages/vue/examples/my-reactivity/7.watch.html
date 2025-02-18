@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>7.watch</title>
+  </head>
+  <body>
+    <script type="module">
+      import {
+        reactive,
+        ref,
+        computed,
+        watch,
+        watchEffect,
+        isRef,
+      } from './index.js'
+      // ---------------run()---------------
+      const product = reactive({
+        price: 5,
+        quantity: 2,
+      })
+
+      const salePrice = computed(() => {
+        return product.price * 0.9
+      })
+
+      const total = computed(() => {
+        return salePrice.value * product.quantity
+      })
+
+      watch(
+        () => total.value,
+        (oldTotal, newTotal) => {
+          console.log(
+            `触发了watch newTotal: ${newTotal}, oldTotal: ${oldTotal}`,
+          )
+        },
+      )
+
+      product.quantity = 3
+      product.price = 10
+    </script>
+  </body>
+</html>

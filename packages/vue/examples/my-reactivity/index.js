@@ -1,6 +1,13 @@
-// the active effect running
+const ReactiveFlags = {
+  SKIP: '__v_skip',
+  IS_REACTIVE: '__v_isReactive',
+  IS_READONLY: '__v_isReadonly',
+  IS_SHALLOW: '__v_isShallow',
+  RAW: '__v_raw',
+  IS_REF: '__v_isRef',
+}
+
 let activeEffect = null
-// the code we want to run
 function effect(fn) {
   activeEffect = fn
   activeEffect()
@@ -8,7 +15,6 @@ function effect(fn) {
 }
 
 const targetMap = new WeakMap()
-// the code we want to save
 const track = (target, key) => {
   if (activeEffect) {
     let depsMap = targetMap.get(target)
@@ -44,8 +50,9 @@ function reactive(target) {
     },
     set(target, key, value, receiver) {
       const oldValue = target[key]
-      const result = Reflect.set(target, key, value, receiver)
-      if (oldValue != Reflect.get(target, key, receiver)) {
+      const result = value
+      if (oldValue != value) {
+        Reflect.set(target, key, value, receiver)
         trigger(target, key)
       }
       return result
@@ -56,6 +63,7 @@ function reactive(target) {
 
 function ref(raw) {
   const r = {
+    __v_isRef: true,
     get value() {
       track(r, 'value')
       return raw
@@ -70,9 +78,38 @@ function ref(raw) {
   return r
 }
 
+export function isRef(r) {
+  return r ? r[ReactiveFlags.IS_REF] === true : false
+}
+
 function computed(fn) {
   const result = ref()
   effect(() => (result.value = fn()))
   return result
 }
-export { effect, reactive, ref, computed }
+
+function watch(getter, callback) {
+  let oldValue, newValue
+  let firstRun = true
+  // 利用 effect 收集 getter 内部对数据的依赖，
+  // 数据变化时 effect 会重新运行，并调用 callback
+  effect(() => {
+    newValue = getter()
+    if (firstRun) {
+      // 第一次执行不触发回调
+      oldValue = newValue
+      firstRun = false
+    } else {
+      callback(oldValue, newValue)
+      oldValue = newValue
+    }
+  })
+}
+
+function watchEffect(fn) {
+  // 利用 effect 收集 fn 内部对数据的依赖，
+  // 数据变化时 effect 会重新运行，并调用 fn
+  effect(fn)
+}
+
+export { effect, reactive, ref, computed, watch, watchEffect }
